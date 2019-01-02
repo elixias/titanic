@@ -1,7 +1,12 @@
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer, make_column_transformer
+
+titanic = pd.read_csv("https://raw.githubusercontent.com/amueller/scipy-2017-sklearn/master/notebooks/datasets/titanic3.csv")
 
 target = titanic.survived.values
 features = titanic[['pclass', 'sex', 'age', 'fare', 'embarked']].copy()
@@ -14,12 +19,12 @@ numerical_features = features.dtypes == 'float'
 categorical_features = ~numerical_features
 
 preprocess = make_column_transformer(
-    (numerical_features, make_pipeline(SimpleImputer(), StandardScaler())),
-    (categorical_features, OneHotEncoder()))
+    (make_pipeline(SimpleImputer(), StandardScaler()),numerical_features),
+    (OneHotEncoder(), categorical_features))
 
 model = make_pipeline(
     preprocess,
-    LogisticRegression())
+    LogisticRegression(solver="lbfgs"))
 	
 model.fit(X_train, y_train)
 print("logistic regression score: %f" % model.score(X_test, y_test))
